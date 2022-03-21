@@ -54,7 +54,7 @@ from dataclasses import dataclass, field
 from dataclasses_json import LetterCase, dataclass_json
 from loguru import logger
 
-from autodidaqt_common.remote.schema import RemoteApplicationState, TypeDefinition, Value, typedef
+from autodidaqt_common.remote.schema import RemoteApplicationState, Value, typedef
 from autodidaqt_common.remote.utils import (
     ALL_COMMANDS,
     ALL_RESPONSES,
@@ -90,6 +90,7 @@ __all__ = [
     "Log",
 ]
 
+AxisPath = List[Union[str, int]]
 
 def deserialize_wire_types(message: Any) -> Any:
     if not isinstance(message, dict):
@@ -230,14 +231,28 @@ class StartRunCommand(RemoteCommand):
 
 
 @register_command
+class StartManualRunCommand(RemoteCommand):
+    pass
+
+
+@register_command
 class QueueRunCommand(RemoteCommand):
     pass
 
 
 @register_command
-class WriteAxisCommand(RemoteCommand):
+class PointCommand(RemoteCommand):
     pass
 
+@register_command
+class StepCommand(RemoteCommand):
+    reads: List[AxisPath]
+    writes: List[List[
+        Union[
+            AxisPath,
+            Value,
+        ]
+    ]]
 
 @register_command
 class HeartbeatCommand(RemoteCommand):
@@ -246,7 +261,7 @@ class HeartbeatCommand(RemoteCommand):
 
 @register_response
 class AxisRead(RemoteResponse):
-    axis_path: List[Union[str, int]]
+    axis_path: AxisPath
 
     read_time: str
     value: Value
@@ -256,19 +271,19 @@ class AxisRead(RemoteResponse):
 class RecordData(RemoteResponse):
     point: int
     step: int
-    path: List[Union[str, int]]
+    path: AxisPath
     value: Value
     time: str
 
 
 @register_command
 class ReadAxisCommand(RemoteCommand):
-    axis_path: List[Union[str, int]]
+    axis_path: AxisPath
 
 
 @register_command
 class WriteAxisCommand(RemoteCommand):
-    axis_path: List[Union[str, int]]
+    axis_path: AxisPath
     value: Value
 
 
@@ -288,6 +303,9 @@ class Log(RemoteResponse):
 FORWARD_TO_EXPERIMENT_MESSAGE_CLASSES = (
     SetScanConfigCommand,
     StartRunCommand,
+    StartManualRunCommand,
+    PointCommand,
+    StepCommand,
     PauseRunCommand,
     StopRunCommand,
     QueueRunCommand,

@@ -28,12 +28,19 @@ class Middleware:
 
 @dataclass
 class LogMiddleware:
+    outbound: bool = True
+    inbound: bool = True
+
     def run_outbound(self, message):
-        print(message)
+        if self.outbound:
+            print(message)
+
         return message
 
     def run_inbound(self, message):
-        print(message)
+        if self.inbound:
+            print(message)
+
         return message
 
 
