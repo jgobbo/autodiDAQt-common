@@ -262,6 +262,9 @@ class TypeDefinition:
             id = generate_type_id("ObjectType")
             type_def = cls(id=id, name="ObjectType", variant=TypeVariant.Object)
 
+        # TODO give better warnings here
+        # if type_def is None:
+        #     raise Exception(f"Axis {type_} in {cls} doesn't have the correct data specification. It needs to be either an ArrayType or ObjectType.")
         assert type_def is not None
         cls.register_type_definition(type_def, type_)
         return type_def
