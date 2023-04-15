@@ -29,7 +29,7 @@ _TYPE_CONSTRUCTORS_BY_ID: Dict[TypeDefinitionID, type] = {}
 
 
 def generate_type_id(type) -> TypeDefinitionID:
-    return str(uuid.uuid3(uuid.NAMESPACE_URL, f"daquiri://{type}"))
+    return str(uuid.uuid3(uuid.NAMESPACE_URL, f"autodidaqt://{type}"))
 
 
 class TypeVariant(str, enum.Enum):
@@ -60,7 +60,11 @@ class RichFieldDefinition:
         if self.default:
             field_info = field(default=self.default.to_instance())
 
-        return (self.name, TypeDefinition.get_definition_by_id(self.type_id).type, field_info)
+        return (
+            self.name,
+            TypeDefinition.get_definition_by_id(self.type_id).type,
+            field_info,
+        )
 
     @classmethod
     def from_field(cls, field: Field):
@@ -107,7 +111,10 @@ class TypeDefinition:
             if self.variant == TypeVariant.Enum:
                 new_enum = types.new_class(
                     self.name,
-                    [TypeDefinition.get_definition_by_id(b).type for b in self.enum_bases]
+                    [
+                        TypeDefinition.get_definition_by_id(b).type
+                        for b in self.enum_bases
+                    ]
                     + [enum.Enum],
                     {},
                     lambda ns: ns.update(self.enum_fields),
@@ -190,7 +197,10 @@ class TypeDefinition:
 
     @staticmethod
     def register_type_definition(type_def: Type["TypeDefinition"], type_: type):
-        if type_def.id in _TYPE_DEFINITIONS_BY_ID or type_def.name in _TYPE_DEFINITIONS_BY_NAME:
+        if (
+            type_def.id in _TYPE_DEFINITIONS_BY_ID
+            or type_def.name in _TYPE_DEFINITIONS_BY_NAME
+        ):
             raise ValueError(f"Type definition {type_def} is already registered.")
 
         _TYPE_DEFINITIONS_BY_ID[type_def.id] = type_def
@@ -221,7 +231,9 @@ class TypeDefinition:
     @classmethod
     def from_core_type(cls, type_) -> Type["TypeDefinition"]:
         id = generate_type_id(type_.__name__)
-        type_def = cls(id=id, variant=TypeVariant.Core, name=type_.__name__, fields=None)
+        type_def = cls(
+            id=id, variant=TypeVariant.Core, name=type_.__name__, fields=None
+        )
         cls.register_type_definition(type_def, type_)
         return type_def
 
@@ -232,7 +244,9 @@ class TypeDefinition:
         except KeyError:
             pass
 
-        if dataclasses.is_dataclass(type_) and not isinstance(type_, (ArrayType, ObjectType)):
+        if dataclasses.is_dataclass(type_) and not isinstance(
+            type_, (ArrayType, ObjectType)
+        ):
             return cls.from_dataclass(type_)
 
         core_variants = {float, int, str}
@@ -288,7 +302,9 @@ class TypeDefinition:
         for field in dataclasses.fields(data_cls):
             fields[field.name] = RichFieldDefinition.from_field(field)
 
-        type_def = cls(id=id, name=data_cls.__name__, fields=fields, variant=TypeVariant.Dataclass)
+        type_def = cls(
+            id=id, name=data_cls.__name__, fields=fields, variant=TypeVariant.Dataclass
+        )
 
         # delete the temporary registration since we are about
         # to make a real registration
