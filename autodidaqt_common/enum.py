@@ -19,7 +19,7 @@ def enum_option_names(enum_cls: Type[enum.Enum]) -> List[str]:
     names = [x for x in dir(enum_cls) if "__" not in x]
     values = [_try_unwrap_value(getattr(enum_cls, n)) for n in names]
 
-    return [x[0] for x in sorted(zip(names, values), key=lambda x: x[1])]
+    return [x[0] for x in sorted(zip(names, values), key=lambda x: x[0])]
 
 
 def enum_mapping(enum_cls: Type[enum.Enum], invert=False):
